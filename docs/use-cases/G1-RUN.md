@@ -21,3 +21,9 @@ The ledger verifies page digests and rebuilds projections directly from bundles.
     PYTHONPATH=src python -m chronology.cli inventory OWNER/REPO --max-pages 20 --budget 12 --output "$HOME/.local/share/chronology-g1"
 
 Inventories visible PRs and commits reachable from a captured default-branch tip, not every Git ref. Page budget is per collection; partial pages retained on handled errors, duplicate identities flagged. Selection spreads a bounded sample across time and reserves a nonmerged example when feasible. It is not a significance ranking. Review the selected PR numbers, then use observe and ledger. No automatic deep collection in this increment; no claims based solely on commit counts. Corpus stays private. Default-branch history and PRs may overlap; never sum them as distinct work.
+
+## Account relationship probe
+
+    PYTHONPATH=src python -m chronology.cli account --max-pages 10 --output "$HOME/.local/share/chronology-g1"
+
+Uses the authenticated account (not an arbitrary login), owned repository list, per-repo genealogy and bounded authored external issues/PR search. Distinguishes parent and network root, known nonfork and unknown. Search results must match expected type and account ID; unresolved repository names are references, not stable IDs. Records evidence and coverage; search is indexed and permission-dependent, not exhaustive. External reviews/comments/commits, branch divergence, identity linking and intellectual lineage remain out of scope. No private data in public CI or Git. Account mode requires authenticated gh access to user/repo/search endpoints; connector availability is different.

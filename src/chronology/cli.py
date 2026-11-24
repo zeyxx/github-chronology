@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from .domain import canonical, digest, project, record
 from .ledger import build_ledger
 from .inventory import inventory, select_prs
+from .relations import collect_account, project_relations
 
 NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -144,9 +145,21 @@ def main():
     p.add_argument("--max-pages", type=int, default=20)
     p.add_argument("--budget", type=int, default=12)
     p.add_argument("--output", required=True)
+    p = sub.add_parser("account")
+    p.add_argument("--max-pages", type=int, default=10)
+    p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
+        if args.mode == "account":
+            bundle = collect_account(gh_read, args.max_pages)
+            graph = project_relations(bundle)
+            key = digest(bundle)
+            put(root, key + ".account.json", bundle)
+            put(root, key + ".relations.json", graph)
+            partial = any(r["status"] != "complete" for r in bundle["records"].values())
+            print(json.dumps({"bundle_id": key, "counts": graph["counts"], "partial": partial}))
+            return 2 if partial else 0
         if args.mode == "inventory":
             if not NAME.fullmatch(args.repo):
                 raise ValueError("Expected OWNER/REPO")
