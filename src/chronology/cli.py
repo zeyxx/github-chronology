@@ -157,17 +157,24 @@ def main():
     p = sub.add_parser("contribution")
     p.add_argument("repo")
     p.add_argument("number", type=int)
-    p.add_argument("--annotation")
+    p.add_argument("--output", required=True)
+    p = sub.add_parser("assess-contribution")
+    p.add_argument("bundle")
+    p.add_argument("annotation")
     p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
-        if args.mode == "contribution":
-            bundle = collect_issue(args.repo, args.number, gh_read)
-            annotation = json.loads(Path(args.annotation).read_text(encoding="utf-8")) if args.annotation else None
+        if args.mode in ("contribution", "assess-contribution"):
+            if args.mode == "contribution":
+                bundle = collect_issue(args.repo, args.number, gh_read)
+                annotation = None
+                put(root, digest(bundle) + ".issue.json", bundle)
+            else:
+                bundle = json.loads(Path(args.bundle).read_text(encoding="utf-8"))
+                annotation = json.loads(Path(args.annotation).read_text(encoding="utf-8"))
             result = classify_issue(bundle, annotation)
             key = digest(bundle)
-            put(root, key + ".issue.json", bundle)
             put(root, digest(result) + ".contribution.json", result)
             print(json.dumps({"bundle_id": key, "assessment": result["disposition"],
                               "partial": result["partial"]}))
