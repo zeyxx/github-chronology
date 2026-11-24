@@ -15,3 +15,9 @@ Limits: no account-wide acquisition, check-run logs, issue timelines, commit dif
     PYTHONPATH=src python -m chronology.cli ledger PATH_TO_BUNDLE_1 PATH_TO_BUNDLE_2 --output "$HOME/.local/share/chronology-g1"
 
 The ledger verifies page digests and rebuilds projections directly from bundles. It generates neutral candidate statements only for observed merges and exact-SHA completed successful checks. Each entry retains a source fact, bundle ID, attribution unknown, limitations and pending review. The ledger carries endpoint coverage and warnings; partial data is not complete. Same bundle replay is idempotent; separate observations are not collapsed, even if they describe the same merge. This is not a skill evaluator, a claim approval mechanism or an automatic CV generator. Manual or reviewed semantic interpretation of source files and individual contributions is still required.
+
+## Bounded historical inventory
+
+    PYTHONPATH=src python -m chronology.cli inventory OWNER/REPO --max-pages 20 --budget 12 --output "$HOME/.local/share/chronology-g1"
+
+Inventories visible PRs and commits reachable from a captured default-branch tip, not every Git ref. Page budget is per collection; partial pages retained on handled errors, duplicate identities flagged. Selection spreads a bounded sample across time and reserves a nonmerged example when feasible. It is not a significance ranking. Review the selected PR numbers, then use observe and ledger. No automatic deep collection in this increment; no claims based solely on commit counts. Corpus stays private. Default-branch history and PRs may overlap; never sum them as distinct work.

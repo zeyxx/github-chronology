@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timezone
 from .domain import canonical, digest, project, record
 from .ledger import build_ledger
+from .inventory import inventory, select_prs
 
 NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -138,9 +139,25 @@ def main():
     p = sub.add_parser("ledger")
     p.add_argument("bundles", nargs="+")
     p.add_argument("--output", required=True)
+    p = sub.add_parser("inventory")
+    p.add_argument("repo")
+    p.add_argument("--max-pages", type=int, default=20)
+    p.add_argument("--budget", type=int, default=12)
+    p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
+        if args.mode == "inventory":
+            if not NAME.fullmatch(args.repo):
+                raise ValueError("Expected OWNER/REPO")
+            result = inventory(args.repo, gh_read, args.max_pages)
+            result["selection"] = select_prs(result, args.budget)
+            key = digest(result)
+            put(root, key + ".inventory.json", result)
+            print(json.dumps({"inventory_id": key, "counts": result["counts"],
+                              "coverage": {k: v["status"] for k, v in result["records"].items()},
+                              "selected_prs": result["selection"]["numbers"]}))
+            return 2 if any(r["status"] != "complete" for r in result["records"].values()) else 0
         if args.mode == "ledger":
             bundles = [json.loads(Path(p).read_text(encoding="utf-8")) for p in args.bundles]
             for bundle in bundles:
