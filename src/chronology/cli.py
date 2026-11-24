@@ -13,6 +13,7 @@ from .ledger import build_ledger
 from .inventory import inventory, select_prs
 from .relations import collect_account, project_relations
 from .forks import collect_fork
+from .contributions import collect_issue, classify_issue
 
 NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -153,9 +154,24 @@ def main():
     p.add_argument("repo")
     p.add_argument("--max-branches", type=int, default=20)
     p.add_argument("--output", required=True)
+    p = sub.add_parser("contribution")
+    p.add_argument("repo")
+    p.add_argument("number", type=int)
+    p.add_argument("--annotation")
+    p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
+        if args.mode == "contribution":
+            bundle = collect_issue(args.repo, args.number, gh_read)
+            annotation = json.loads(Path(args.annotation).read_text(encoding="utf-8")) if args.annotation else None
+            result = classify_issue(bundle, annotation)
+            key = digest(bundle)
+            put(root, key + ".issue.json", bundle)
+            put(root, digest(result) + ".contribution.json", result)
+            print(json.dumps({"bundle_id": key, "assessment": result["disposition"],
+                              "partial": result["partial"]}))
+            return 2 if result["partial"] else 0
         if args.mode == "fork":
             bundle = collect_fork(args.repo, gh_read, args.max_branches)
             key = digest(bundle)

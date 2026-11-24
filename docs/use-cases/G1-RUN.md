@@ -33,3 +33,9 @@ Uses the authenticated account (not an arbitrary login), owned repository list, 
     PYTHONPATH=src python -m chronology.cli fork OWNER/REPO --max-branches 20 --output "$HOME/.local/share/chronology-g1"
 
 Read parent identity and pin default-branch tips. Compare each selected branch SHA with the captured parent SHA, asking for only one commit payload per comparison. Keep distinct branches but reuse comparison for identical tips. A failed comparison is unknown; branch budget or a full first page marks partial. Counts are reachability differences, not author attribution, patch equivalence, utility or unique work across branches. Never sum branch ahead counts. No mutation, clone or upstream submission. CI synthetic only.
+
+## External contribution assessment
+
+    PYTHONPATH=src python -m chronology.cli contribution OWNER/REPO 123 --output "$HOME/.local/share/chronology-g1"
+
+Issue lifecycle and closure reason are independent of technical disposition. Read issue and comments; no lexical classifier of acceptance or validity. Optional --annotation JSON must contain bundle_sha256, comment_id, disposition, reviewer, scope and rationale. The annotation represents a human-reviewed interpretation, not independent validation; OWNER/MEMBER/COLLABORATOR is a provider association, not proof of delegated authority. Do not interpret closed/completed as fixed. Missing response data is unknown. FIX_REPORTED means a maintainer reports a fix, not verified execution or causality. Verify linked commit and regression changes separately; deployment, bounty, impact and human autonomy remain unknown unless supported. Mixed reports require finding-level annotations; do not flatten multiple findings into one verdict. PR merge/acceptance remains separate. This probe does not support multi-finding annotations or automated fix verification yet; synthetic tests only.
