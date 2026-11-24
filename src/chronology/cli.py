@@ -9,6 +9,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from .domain import canonical, digest, project, record
+from .ledger import build_ledger
 
 NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -134,9 +135,28 @@ def main():
     p = sub.add_parser("replay")
     p.add_argument("bundle")
     p.add_argument("--output", required=True)
+    p = sub.add_parser("ledger")
+    p.add_argument("bundles", nargs="+")
+    p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
+        if args.mode == "ledger":
+            bundles = [json.loads(Path(p).read_text(encoding="utf-8")) for p in args.bundles]
+            for bundle in bundles:
+                for r in bundle["records"].values():
+                    if digest(r["pages"]) != r["sha256"]:
+                        raise ValueError("Evidence checksum mismatch")
+            ledger = build_ledger([project(b) for b in bundles])
+            key = digest(ledger)
+            dest = root / (key + ".ledger.json")
+            if dest.exists():
+                if json.loads(dest.read_text(encoding="utf-8")) != ledger:
+                    raise ValueError("Ledger replay divergence")
+            else:
+                put(root, dest.name, ledger)
+            print(json.dumps({"ledger_id": key, "entries": len(ledger["entries"])}))
+            return 0
         if args.mode == "observe":
             bundle, metrics = collect(args.repo, args.number)
             key = digest(bundle)
