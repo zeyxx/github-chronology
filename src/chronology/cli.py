@@ -12,6 +12,7 @@ from .domain import canonical, digest, project, record
 from .ledger import build_ledger
 from .inventory import inventory, select_prs
 from .relations import collect_account, project_relations
+from .forks import collect_fork
 
 NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 SHA = re.compile(r"[a-f0-9]{40}")
@@ -148,9 +149,20 @@ def main():
     p = sub.add_parser("account")
     p.add_argument("--max-pages", type=int, default=10)
     p.add_argument("--output", required=True)
+    p = sub.add_parser("fork")
+    p.add_argument("repo")
+    p.add_argument("--max-branches", type=int, default=20)
+    p.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
         root = private_root(args.output)
+        if args.mode == "fork":
+            bundle = collect_fork(args.repo, gh_read, args.max_branches)
+            key = digest(bundle)
+            put(root, key + ".fork.json", bundle)
+            print(json.dumps({"bundle_id": key, "branches": bundle["branches"],
+                              "partial": bundle["partial"]}))
+            return 2 if bundle["partial"] else 0
         if args.mode == "account":
             bundle = collect_account(gh_read, args.max_pages)
             graph = project_relations(bundle)

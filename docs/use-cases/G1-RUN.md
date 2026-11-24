@@ -27,3 +27,9 @@ Inventories visible PRs and commits reachable from a captured default-branch tip
     PYTHONPATH=src python -m chronology.cli account --max-pages 10 --output "$HOME/.local/share/chronology-g1"
 
 Uses the authenticated account (not an arbitrary login), owned repository list, per-repo genealogy and bounded authored external issues/PR search. Distinguishes parent and network root, known nonfork and unknown. Search results must match expected type and account ID; unresolved repository names are references, not stable IDs. Records evidence and coverage; search is indexed and permission-dependent, not exhaustive. External reviews/comments/commits, branch divergence, identity linking and intellectual lineage remain out of scope. No private data in public CI or Git. Account mode requires authenticated gh access to user/repo/search endpoints; connector availability is different.
+
+## Fork divergence probe
+
+    PYTHONPATH=src python -m chronology.cli fork OWNER/REPO --max-branches 20 --output "$HOME/.local/share/chronology-g1"
+
+Read parent identity and pin default-branch tips. Compare each selected branch SHA with the captured parent SHA, asking for only one commit payload per comparison. Keep distinct branches but reuse comparison for identical tips. A failed comparison is unknown; branch budget or a full first page marks partial. Counts are reachability differences, not author attribution, patch equivalence, utility or unique work across branches. Never sum branch ahead counts. No mutation, clone or upstream submission. CI synthetic only.
